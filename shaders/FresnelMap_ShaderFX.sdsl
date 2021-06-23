@@ -1,0 +1,30 @@
+[Summary("FresnelMap Function ")]
+
+shader FresnelMap_ShaderFX : ComputeFloat4, NormalStream, Transformation, PositionStream4
+{
+    //input for another ShaderFX node
+	compose ComputeFloat4 ShaderInput;
+	[Default(3.5)]
+	compose ComputeFloat Exponent; 
+
+	override float4 Compute()
+    {
+        
+		float4 Col = ShaderInput.Compute();
+		float  Exp = Exponent.Compute () ; 
+		
+		//Calculate ViewDir vector (Camera position - Position in world space)
+		float3 Viewvec = normalize(streams.Eye - streams.PositionWS)  ;
+		
+        //Calculate fresnel withe the Dotproduct between normals and ViewDir Vector
+	    float fresnel = dot(streams.meshNormalWS,Viewvec);
+		
+		//Clamp Value between 0 and 1
+		fresnel = saturate(1 - fresnel);
+		
+		//Generate exponent method with pow
+		fresnel = pow (fresnel,Exp) ;
+	
+		return  Col * fresnel;
+    }
+};
